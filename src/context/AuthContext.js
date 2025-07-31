@@ -1,107 +1,118 @@
-'use client'
+"use client";
 
-import { createContext, useState, useEffect, useContext } from 'react'
-import Cookies from 'js-cookie'
+import { createContext, useState, useEffect, useContext } from "react";
+import Cookies from "js-cookie";
 
-const AuthContext = createContext()
+const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)       // Thông tin đội chơi
-  const [loading, setLoading] = useState(true) // Đang kiểm tra trạng thái đăng nhập
-  const [isLogin, setIsLogin] = useState(false)
+  const [user, setUser] = useState(null); // Thông tin đội chơi
+  const [loading, setLoading] = useState(true); // Đang kiểm tra trạng thái đăng nhập
+  const [isLogin, setIsLogin] = useState(false);
+  const [token, setToken] = useState(null);
 
   // ✅ Kiểm tra đăng nhập khi load trang
   useEffect(() => {
-    let isMounted = true
+    let isMounted = true;
 
     async function fetchUser() {
       try {
-        const res = await fetch('/api/auth/me', {
-          method: 'GET',
-          credentials: 'include', // Cookie-based auth
-        })
+        const res = await fetch("/api/auth/me", {
+          method: "GET",
+          credentials: "include", // Cookie-based auth
+        });
 
-        const data = await res.json()
+        const data = await res.json();
 
-        if (!isMounted) return
+        if (!isMounted) return;
 
-        if (res.ok && data?.teamId) {
-          setUser(data)
-          setIsLogin(true)
+        if (res.ok && data?.teamName) {
+          setUser(data);
+          setIsLogin(true);
         } else {
-          setUser(null)
-          setIsLogin(false)
+          setUser(null);
+          setIsLogin(false);
         }
       } catch (error) {
-        console.error('Lỗi khi xác thực:', error)
-        setUser(null)
-        setIsLogin(false)
+        console.error("Lỗi khi xác thực:", error);
+        setUser(null);
+        setIsLogin(false);
       } finally {
-        if (isMounted) setLoading(false)
+        if (isMounted) setLoading(false);
       }
     }
 
-    fetchUser()
+    fetchUser();
     return () => {
-      isMounted = false
-    }
-  }, [])
+      isMounted = false;
+    };
+  }, []);
 
   // ✅ Đăng nhập
   const login = async (teamName, password) => {
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ teamName, password }),
-      })
+      });
 
-      const data = await res.json()
-      if (!res.ok) throw new Error(data?.message || 'Đăng nhập thất bại')
-
-      setUser(data)
-      setIsLogin(true)
-      return { success: true }
+      const data = await res.json();
+      console.log("🚀 ~ login ~ data:", data);
+      if (!res.ok) throw new Error(data.error);
+      Cookies.set("token", data.token, { expires: 7 });
+      Cookies.set("user", JSON.stringify({ teamName }), { expires: 7 });
+      Cookies.set("teamId", JSON.stringify(data?.teamId), { expires: 7 });
+      // 🔹 Lưu token vào cookies
+      setIsLogin(true);
+      setToken(data.token);
+      setUser({ teamName });
+      setUser(data);
+      setIsLogin(true);
+      return { success: true };
     } catch (error) {
-      return { success: false, error: error.message }
+      return { success: false, error: error.message };
     }
-  }
+  };
 
   // ✅ Đăng ký đội chơi
   const register = async ({ teamName, teamCode, password }) => {
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ teamName, teamCode, password }),
-      })
+      });
 
-      const data = await res.json()
-      if (!res.ok) throw new Error(data?.message || 'Đăng ký thất bại')
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || "Đăng ký thất bại");
 
-      setUser(data)
-      setIsLogin(true)
-      return { success: true }
+      setUser(data);
+      setIsLogin(true);
+      return { success: true };
     } catch (error) {
-      return { success: false, error: error.message }
+      return { success: false, error: error.message };
     }
-  }
+  };
 
   // ✅ Đăng xuất
   const logout = async () => {
-    await fetch('/api/auth/logout', {
-      method: 'POST',
-      credentials: 'include',
-    })
-
-    setUser(null)
-    setIsLogin(false)
-  }
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+    Cookies.remove("token");
+    Cookies.remove("user");
+    Cookies.remove("_id");
+    setToken(null);
+    setUser(null);
+    setIsLogin(false);
+  };
 
   return (
     <AuthContext.Provider
       value={{
-        user,       // dữ liệu đội chơi: teamId, name, v.v.
+        user, // dữ liệu đội chơi: teamId, name, v.v.
         login,
         logout,
         loading,
@@ -111,8 +122,8 @@ export const AuthProvider = ({ children }) => {
     >
       {children}
     </AuthContext.Provider>
-  )
-}
+  );
+};
 
 // ✅ Hook để dùng trong component
-export const useAuth = () => useContext(AuthContext)
+export const useAuth = () => useContext(AuthContext);

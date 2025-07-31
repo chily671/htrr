@@ -9,27 +9,47 @@ const Map = dynamic(() => import("@/components/Map"), { ssr: false });
 
 export default function MapPage() {
   const { user } = useAuth();
-  console.log("🚀 ~ MapPage ~ user:", user)
   const [location, setLocation] = useState(null);
   const [confirmTeam, setConfirmTeam] = useState(false);
 
-  useEffect(() => {
-    if (!user) return;
+ useEffect(() => {
+  if (!user) return;
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setLocation({
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const newLocation = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        };
+
+        setLocation(newLocation);
+
+        // Gửi dữ liệu về backend
+        try {
+          await fetch('/api/location', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              teamId: user._id,
+              lat: newLocation.lat,
+              lng: newLocation.lng,
+              timestamp: new Date().toISOString(), // Định dạng chuẩn ISO
+            }),
           });
-        },
-        (err) => {
-          console.error("Vị trí bị từ chối hoặc lỗi:", err);
+        } catch (error) {
+          console.error("Lỗi khi gửi vị trí về backend:", error);
         }
-      );
-    }
-  }, [user]);
+      },
+      (err) => {
+        console.error("Vị trí bị từ chối hoặc lỗi:", err);
+      }
+    );
+  }
+}, [user]);
+
 
   if (!user) return <p>Bạn cần đăng nhập để xem bản đồ.</p>;
   if (!location) return <p>Đang lấy vị trí hiện tại...</p>;
@@ -40,7 +60,7 @@ export default function MapPage() {
         <div className="flex flex-col items-center justify-center h-screen text-center space-y-4">
           <h1 className="text-xl font-semibold">
             Bạn có muốn xác nhận vị trí hiện tại của đội{" "}
-            <span className="text-blue-600">{user.teamId}</span> không?
+            <span className="text-blue-600">{user.teamName}</span> không?
           </h1>
           <button
             className="bg-blue-500 text-white px-4 py-2 rounded"

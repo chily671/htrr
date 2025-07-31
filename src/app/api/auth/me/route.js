@@ -1,29 +1,46 @@
 // src/app/api/auth/me/route.js
-import { connectDB } from '@/lib/db'
-import { Team } from '@/models/Team'
-import jwt from 'jsonwebtoken'
+import { connectDB } from "@/lib/db";
+import { NextResponse } from "next/server";
+import { Team } from "@/models/Team";
+import jwt from "jsonwebtoken";
+import { cookies } from "next/headers";
 
 export async function GET(req) {
-  await connectDB()
-  const authHeader = req.headers.get('authorization')
-  const token = authHeader?.split(' ')[1]
-
-  if (!token) {
-    return new Response(JSON.stringify({ message: 'No token' }), { status: 401 })
-  }
-
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    const team = await Team.findById(decoded.teamId)
+    await connectDB();
+    const cookieStore = await cookies(); // ✅ Await cookies() trước khi dùng
+    const token = cookieStore.get("token")?.value;
 
-    if (!team) return new Response(JSON.stringify({ message: 'Not found' }), { status: 404 })
+    if (!token) {
+      return new Response(JSON.stringify({ message: "No token" }), {
+        status: 401,
+      });
+    }
 
-    return new Response(JSON.stringify({
-      _id: team._id,
-      teamName: team.teamName,
-      email: team.email,
-    }))
-  } catch (err) {
-    return new Response(JSON.stringify({ message: 'Invalid token' }), { status: 403 })
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const team = await Team.findById(decoded.teamId);
+
+      if (!team)
+        return new Response(JSON.stringify({ message: "Not found" }), {
+          status: 404,
+        });
+      let InfoTeam = {
+        _id: team._id,
+        teamName: team.teamName,
+        email: team.email,
+      };
+      return NextResponse.json(InfoTeam, { status: 200 });
+    } catch (error) {
+      console.error("Lỗi khi xác thực:", error);
+      return new Response(JSON.stringify({ message: "Invalid token" }), {
+        status: 403,
+      });
+    }
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin đội chơi:", error);
+    return new Response(JSON.stringify({ message: "Internal server error" }), {
+      status: 500,
+    });
   }
 }

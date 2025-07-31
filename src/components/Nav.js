@@ -51,7 +51,7 @@ const Navbar = () => {
 
   return (
     <nav className="w-full flex justify-between items-center py-4 px-6 bg-white shadow-md mb-10">
-      <h1 className="text-xl font-bold text-blue-700">🔥 Hào khí Đồng Nai 2025</h1>
+      <h1 className="text-xl font-bold text-blue-700">🔥Hành trình rực rỡ 2025</h1>
 
       {loading ? (
         <p className="text-sm text-gray-500">Đang kiểm tra đăng nhập...</p>
@@ -104,7 +104,7 @@ const Navbar = () => {
       ) : (
         <div className="flex items-center space-x-4">
           <span className="text-base text-gray-600">
-            Xin chào, <strong>Đội {user?.name || user?.teamId}</strong>
+            Xin chào, <strong>Đội {user?.teamName || user?.teamId}</strong>
           </span>
           <Button
             variant="destructive"

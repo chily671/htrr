@@ -6,15 +6,15 @@ export default function LoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
-  const handleLogin = (e) => {
-    e.preventDefault()
-    if (username === 'admin' && password === '123456') {
-      localStorage.setItem('isAdmin', 'true')
-      window.location.href = '/admin/station'
-    } else {
-      alert('Sai tài khoản hoặc mật khẩu')
-    }
-  }
+  // const handleLogin = (e) => {
+  //   e.preventDefault()
+  //   if (username === 'admin' && password === '123456') {
+  //     localStorage.setItem('isAdmin', 'true')
+  //     window.location.href = '/admin/station'
+  //   } else {
+  //     alert('Sai tài khoản hoặc mật khẩu')
+  //   }
+  // }
 
   return (
     <div className="p-8 max-w-md mx-auto">
