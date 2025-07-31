@@ -58,7 +58,6 @@ export const AuthProvider = ({ children }) => {
       });
 
       const data = await res.json();
-      console.log("🚀 ~ login ~ data:", data);
       if (!res.ok) throw new Error(data.error);
       Cookies.set("token", data.token, { expires: 7 });
       Cookies.set("user", JSON.stringify({ teamName }), { expires: 7 });

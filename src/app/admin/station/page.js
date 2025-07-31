@@ -1,10 +1,14 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import StationMap from "@/components/StationMap";
 import { Button } from "@/components/ui/button";
 import { Drawer } from "@/components/ui/drawer";
 import StationFormDrawer from "./StationForm";
+import dynamic from "next/dynamic";
 
+// import dynamically StationMap with SSR turned off
+const StationMap = dynamic(() => import("@/components/StationMap"), {
+  ssr: false,
+});
 export default function StationManager() {
   const [stations, setStations] = useState([]);
   const [showDrawer, setShowDrawer] = useState(false);
