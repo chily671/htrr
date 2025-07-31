@@ -39,7 +39,6 @@ export async function GET() {
   const teamIdRaw = cookieStore.get("teamId")?.value;
   // replace "" for teamIdRaw
   const teamId = teamIdRaw ? JSON.parse(teamIdRaw) : null;
-  console.log("🚀 ~ GET ~ teamId:", teamId);
   // Lấy tất cả vị trí của các team trừ đội hiện tại
   try {
     const locations = await Team.find({ _id: { $ne: teamId } });
