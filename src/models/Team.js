@@ -1,5 +1,4 @@
-
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const teamSchema = new mongoose.Schema({
   teamName: { type: String, required: true, unique: true },
@@ -18,6 +17,10 @@ const teamSchema = new mongoose.Schema({
     lat: { type: Number },
     lng: { type: Number },
     updatedAt: { type: Date },
+  },
+  currentToken: {
+    type: String,
+    default: null,
   },
 
   // Thời gian tạo team
