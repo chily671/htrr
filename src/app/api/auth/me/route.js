@@ -8,7 +8,7 @@ import { cookies } from "next/headers";
 export async function GET(req) {
   try {
     await connectDB();
-    const cookieStore = await cookies(); // ✅ Await cookies() trước khi dùng
+    const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
     if (!token) {
@@ -25,6 +25,14 @@ export async function GET(req) {
         return new Response(JSON.stringify({ message: "Not found" }), {
           status: 404,
         });
+
+      // 🔐 So sánh token hiện tại với token trong DB
+      if (team.token !== token) {
+        return new Response(JSON.stringify({ message: "Session expired" }), {
+          status: 403,
+        });
+      }
+
       let InfoTeam = {
         _id: team._id,
         teamName: team.teamName,

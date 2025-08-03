@@ -10,31 +10,12 @@ export async function POST(req) {
 
   const team = await Team.findOne({ teamName });
   if (!team) {
-    return NextResponse.json(
-      { message: "Invalid credentials" },
-      { status: 401 }
-    );
+    return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
   }
 
   const isMatch = await bcrypt.compare(password, team.password);
   if (!isMatch) {
-    return NextResponse.json(
-      { message: "Invalid credentials" },
-      { status: 401 }
-    );
-  }
-  if (team.currentToken) {
-    try {
-      // Thử verify token cũ
-      jwt.verify(team.currentToken, process.env.JWT_SECRET);
-      // Nếu verify không lỗi => vẫn còn hạn => từ chối login
-      return NextResponse.json(
-        { message: "Tài khoản đã đăng nhập trên thiết bị khác." },
-        { status: 403 }
-      );
-    } catch (err) {
-      // Nếu token cũ đã hết hạn => cho phép login tiếp
-    }
+    return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
   }
 
   // Tạo token mới
@@ -42,13 +23,13 @@ export async function POST(req) {
     expiresIn: "7d",
   });
 
-  // ✅ Cập nhật token vào DB
+  // Ghi đè token cũ => tự động "logout" thiết bị cũ
   team.currentToken = token;
   await team.save();
 
   return NextResponse.json({
     token,
-    teamName: team.teamName,
+    teamName: team.teamName, 
     teamId: team._id,
   });
 }
